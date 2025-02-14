@@ -78,15 +78,44 @@ export class EventsService {
         const event = await this.findOne(id);
         const queryBuilder = this.eventsRepository.createQueryBuilder('event');
 
-        return await queryBuilder
+        // First try to find events by proximity (within 10km) and same category
+        const radiusInKm = 10;
+        const proximityEvents = await queryBuilder
             .where('event.id != :id', { id })
             .andWhere('event.category = :category', { category: event.category })
-            .andWhere('ABS(EXTRACT(EPOCH FROM event.date) - EXTRACT(EPOCH FROM :date)) <= :timeFrame', {
-                date: event.date,
-                timeFrame: 7 * 24 * 60 * 60, // 7 days in seconds
-            })
-            .orderBy('event.date', 'ASC')
+            .andWhere(
+                `ST_DistanceSphere(
+                ST_MakePoint(CAST(event.location ->> 'longitude' AS FLOAT), 
+                            CAST(event.location ->> 'latitude' AS FLOAT)),
+                ST_MakePoint(:longitude, :latitude)
+            ) <= :distance`,
+                {
+                    longitude: event.location.longitude,
+                    latitude: event.location.latitude,
+                    distance: radiusInKm * 1000 // Convert km to meters
+                }
+            )
+            .orderBy(
+                `ST_DistanceSphere(
+                ST_MakePoint(CAST(event.location ->> 'longitude' AS FLOAT), 
+                            CAST(event.location ->> 'latitude' AS FLOAT)),
+                ST_MakePoint(:longitude, :latitude)
+            )`,
+                'ASC'
+            )
             .limit(5)
             .getMany();
+
+        // If no nearby events found, fall back to category matching
+        if (!proximityEvents.length) {
+            return await queryBuilder
+                .where('event.id != :id', { id })
+                .andWhere('event.category = :category', { category: event.category })
+                .orderBy('event.date', 'ASC')
+                .limit(5)
+                .getMany();
+        }
+
+        return proximityEvents;
     }
 }
