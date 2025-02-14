@@ -1,5 +1,5 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-import { EventCategory } from '../../../../shared/events/types/event-category.type';
+import { EventCategory } from '../types/event-category.type';
 
 @Entity('events')
 export class Event {

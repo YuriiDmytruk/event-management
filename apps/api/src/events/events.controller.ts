@@ -10,9 +10,10 @@ import {
 } from '@nestjs/common';
 import { EventsService } from './events.service';
 import { ZodValidationPipe } from 'src/pipes/zod-validation.pipe';
-import { EventSchema } from '../../../../shared/events/schemas/event.schema'
-import { CreateEventDto } from '../../../../shared/events/dto/create-event.dto'
-import { UpdateEventDto } from '../../../../shared/events/dto/update-event.dto'
+import { EventSchema } from './schemas/event.schema'
+import { CreateEventDto } from './dto/create-event.dto';
+import { UpdateEventDto } from './dto/update-event.dto';
+
 
 @Controller('events')
 export class EventsController {

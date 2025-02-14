@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { EventsModule } from './events/events.module';
-import { Event } from './events/event.entity';
+import { Event } from './events/entities/event.entity';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
