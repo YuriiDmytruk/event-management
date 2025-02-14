@@ -30,12 +30,14 @@ export class EventsController {
         @Query('startDate') startDate?: string,
         @Query('endDate') endDate?: string,
         @Query('search') search?: string,
+        @Query('sortDirection') sortDirection?: 'ASC' | 'DESC',
     ) {
         return this.eventsService.findAll({
             category,
             startDate: startDate ? new Date(startDate) : undefined,
             endDate: endDate ? new Date(endDate) : undefined,
             search,
+            sortDirection: sortDirection || 'ASC',
         });
     }
 

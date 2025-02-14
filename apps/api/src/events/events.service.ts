@@ -22,24 +22,34 @@ export class EventsService {
     async findAll(query: QueryEventDto) {
         const queryBuilder = this.eventsRepository.createQueryBuilder('event');
 
+        // Category filter
         if (query.category) {
             queryBuilder.andWhere('event.category = :category', { category: query.category });
         }
 
+        // Date range filter
         if (query.startDate) {
-            queryBuilder.andWhere('event.date >= :startDate', { startDate: query.startDate });
+            queryBuilder.andWhere('event.date >= :startDate', {
+                startDate: query.startDate
+            });
         }
 
         if (query.endDate) {
-            queryBuilder.andWhere('event.date <= :endDate', { endDate: query.endDate });
+            queryBuilder.andWhere('event.date <= :endDate', {
+                endDate: query.endDate
+            });
         }
 
+        // Search filter
         if (query.search) {
             queryBuilder.andWhere(
-                '(event.title ILIKE :search OR event.description ILIKE :search)',
+                '(LOWER(event.title) LIKE LOWER(:search) OR LOWER(event.description) LIKE LOWER(:search))',
                 { search: `%${query.search}%` },
             );
         }
+
+        // Sort by date
+        queryBuilder.orderBy('event.date', query.sortDirection || 'ASC');
 
         return await queryBuilder.getMany();
     }
