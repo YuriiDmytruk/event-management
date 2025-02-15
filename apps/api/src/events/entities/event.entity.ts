@@ -1,5 +1,5 @@
-import { EventCategory } from '@repo/types';
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { EventCategory } from '../types/event-category.type';
 
 @Entity('events')
 export class Event {

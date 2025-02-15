@@ -1,3 +1,8 @@
+docker-compose up -d
+
+yarn dev
+
+
 # Turborepo starter
 
 This Turborepo starter is maintained by the Turborepo core team.
