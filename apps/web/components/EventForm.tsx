@@ -24,7 +24,7 @@ export const EventForm: React.FC<EventFormProps> = ({ initialData, onSubmit }) =
     const [formData, setFormData] = useState<z.infer<typeof EventSchema>>(initialData || {
         title: '',
         description: '',
-        date: '',
+        date: new Date().toISOString(),
         location: {
             address: '',
             latitude: 0,
@@ -206,7 +206,7 @@ export const EventForm: React.FC<EventFormProps> = ({ initialData, onSubmit }) =
                         type="number"
                         value={formData.location.latitude}
                         onChange={handleChange}
-                        inputProps={{ step: "0.000001" }}
+                        inputProps={{ step: "1" }}
                         error={!!getErrorMessage('location.latitude')}
                         helperText={getErrorMessage('location.latitude')}
                     />
@@ -221,7 +221,7 @@ export const EventForm: React.FC<EventFormProps> = ({ initialData, onSubmit }) =
                         type="number"
                         value={formData.location.longitude}
                         onChange={handleChange}
-                        inputProps={{ step: "0.000001" }}
+                        inputProps={{ step: "1" }}
                         error={!!getErrorMessage('location.longitude')}
                         helperText={getErrorMessage('location.longitude')}
                     />

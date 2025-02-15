@@ -1,5 +1,6 @@
 'use client';
 
+// CreateEventPage.tsx
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
@@ -21,7 +22,6 @@ export default function CreateEventPage() {
     const handleSubmit = async (formData: z.infer<typeof EventSchema>) => {
         try {
             setError(null);
-
             const result = await createEvent(formData);
 
             if (result) {
@@ -31,16 +31,16 @@ export default function CreateEventPage() {
             }
         } catch (err) {
             if (err instanceof z.ZodError) {
-                // This will be caught by the EventForm's handleSubmit
+                // Let the EventForm handle validation errors
                 throw err;
             }
             console.error('Error creating event:', err);
-            setError('An unexpected error occurred');
+            setError('An unexpected error occurred. Please try again.');
         }
     };
 
     const handleCancel = () => {
-        router.push('/events');
+        router.push('/');
     };
 
     return (
@@ -70,6 +70,7 @@ export default function CreateEventPage() {
                     color="secondary"
                     fullWidth
                     onClick={handleCancel}
+                    sx={{ mt: 2 }}
                 >
                     Cancel
                 </Button>

@@ -13,20 +13,15 @@ import { Event } from '../types/event.types';
 import { EventCategory } from '../types/event-category.type';
 import { updateEvent } from '../app/actions';
 import { EventForm } from '../components/EventForm';
+import { z } from 'zod';
 
+interface EditEventClientProps {
+    initialData: Event;
+}
 
-export default function EditEventClient({
-    initialData
-}: {
-    initialData: Event
-}) {
+export default function EditEventClient({ initialData }: EditEventClientProps) {
     const router = useRouter();
     const [error, setError] = useState<string | null>(null);
-
-    const formattedInitialData = {
-        ...initialData,
-        date: new Date(initialData.date).toISOString().slice(0, 16)
-    };
 
     const handleSubmit = async (formData: {
         title: string;
@@ -42,7 +37,10 @@ export default function EditEventClient({
         try {
             setError(null);
 
-            if (!initialData.id) return
+            if (!initialData.id) {
+                setError('Event ID is missing');
+                return;
+            }
 
             const result = await updateEvent(initialData.id, formData);
 
@@ -52,13 +50,17 @@ export default function EditEventClient({
                 setError('Failed to update event. Please try again.');
             }
         } catch (err) {
+            if (err instanceof z.ZodError) {
+                // Let the EventForm handle validation errors
+                throw err;
+            }
             console.error('Error updating event:', err);
-            setError('An unexpected error occurred');
+            setError('An unexpected error occurred. Please try again.');
         }
     };
 
     const handleCancel = () => {
-        router.push('/');
+        router.back();
     };
 
     return (
@@ -81,19 +83,21 @@ export default function EditEventClient({
                 )}
 
                 <EventForm
-                    initialData={formattedInitialData}
+                    initialData={initialData}
                     onSubmit={handleSubmit}
                 />
+
                 <Button
                     type="button"
                     variant="outlined"
                     color="secondary"
                     fullWidth
                     onClick={handleCancel}
+                    sx={{ mt: 2 }}
                 >
                     Cancel
                 </Button>
             </Box>
-        </Container >
+        </Container>
     );
 }
