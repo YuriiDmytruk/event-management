@@ -51,7 +51,6 @@ export default function EditEventClient({ initialData }: EditEventClientProps) {
             }
         } catch (err) {
             if (err instanceof z.ZodError) {
-                // Let the EventForm handle validation errors
                 throw err;
             }
             console.error('Error updating event:', err);

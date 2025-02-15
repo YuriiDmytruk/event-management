@@ -1,6 +1,5 @@
 'use client';
 
-// CreateEventPage.tsx
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
@@ -31,7 +30,6 @@ export default function CreateEventPage() {
             }
         } catch (err) {
             if (err instanceof z.ZodError) {
-                // Let the EventForm handle validation errors
                 throw err;
             }
             console.error('Error creating event:', err);

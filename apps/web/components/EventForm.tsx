@@ -43,14 +43,11 @@ export const EventForm: React.FC<EventFormProps> = ({ initialData, onSubmit }) =
         const targetName = 'name' in e.target ? e.target.name : undefined;
         const targetValue = 'value' in e.target ? e.target.value : undefined;
 
-        // Ensure name is a string before using it
         if (typeof targetName !== 'string') return;
 
-        // Handle nested location fields
         if (targetName.startsWith('location.')) {
             const locationField = targetName.split('.')[1];
 
-            // Use type assertion to resolve computed property name issue
             setFormData(prev => ({
                 ...prev,
                 location: {
@@ -76,19 +73,15 @@ export const EventForm: React.FC<EventFormProps> = ({ initialData, onSubmit }) =
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            // Ensure the date is in ISO datetime format
             const formDataWithProperDate = {
                 ...formData,
                 date: new Date(formData.date).toISOString()
             };
 
-            // Validate the form data
             const validatedData = EventSchema.parse(formDataWithProperDate);
 
-            // Clear any previous errors
             setErrors(null);
 
-            // Call the onSubmit prop with validated data
             await onSubmit(validatedData);
         } catch (error) {
             if (error instanceof z.ZodError) {
@@ -99,7 +92,6 @@ export const EventForm: React.FC<EventFormProps> = ({ initialData, onSubmit }) =
         }
     };
 
-    // Helper function to get error message for a specific field
     const getErrorMessage = (fieldPath: string) => {
         if (!errors) return null;
 
