@@ -64,6 +64,7 @@ export async function createEvent(eventData: Omit<Event, 'id' | 'createdAt' | 'u
 
 export async function updateEvent(id: string, eventData: Partial<Omit<Event, 'id' | 'createdAt' | 'updatedAt'>>): Promise<Event | null> {
     try {
+        console.log('UPDATE')
         const response = await fetch(`http://localhost:8000/api/events/${id}`, {
             method: 'PATCH',
             headers: {

@@ -14,6 +14,7 @@ import { EventCategory } from '../types/event-category.type';
 import { updateEvent } from '../app/actions';
 import { EventForm } from '../components/EventForm';
 import { z } from 'zod';
+import { EventSchema } from '../schemas/event.schema';
 
 interface EditEventClientProps {
     initialData: Event;
@@ -23,17 +24,19 @@ export default function EditEventClient({ initialData }: EditEventClientProps) {
     const router = useRouter();
     const [error, setError] = useState<string | null>(null);
 
-    const handleSubmit = async (formData: {
-        title: string;
-        description: string;
-        date: string;
+    const formattedInitialData = {
+        title: initialData.title,
+        description: initialData.description,
+        date: initialData.date,
         location: {
-            address: string;
-            latitude: number;
-            longitude: number;
-        };
-        category: EventCategory;
-    }) => {
+            address: initialData.location.address,
+            latitude: initialData.location.latitude,
+            longitude: initialData.location.longitude,
+        },
+        category: initialData.category as EventCategory,
+    };
+
+    const handleSubmit = async (formData: z.infer<typeof EventSchema>) => {
         try {
             setError(null);
 
@@ -50,10 +53,10 @@ export default function EditEventClient({ initialData }: EditEventClientProps) {
                 setError('Failed to update event. Please try again.');
             }
         } catch (err) {
+            console.error('Error in handleSubmit:', err);
             if (err instanceof z.ZodError) {
-                throw err;
+                throw err; // Let EventForm handle validation errors
             }
-            console.error('Error updating event:', err);
             setError('An unexpected error occurred. Please try again.');
         }
     };
@@ -82,7 +85,7 @@ export default function EditEventClient({ initialData }: EditEventClientProps) {
                 )}
 
                 <EventForm
-                    initialData={initialData}
+                    initialData={formattedInitialData}
                     onSubmit={handleSubmit}
                 />
 
