@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { debounce } from 'lodash';
 import {
   Box,
   Container,
@@ -60,23 +61,32 @@ export default function EventsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadEvents();
-  }, [filters]);
+  // Debounced load events function
+  const debouncedLoadEvents = useCallback(
+    debounce(async (currentFilters: EventFilters) => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const data = await fetchEvents(currentFilters);
+        setEvents(data);
+      } catch (err) {
+        setError('Failed to load events');
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    }, 500),
+    []
+  );
 
-  const loadEvents = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const data = await fetchEvents(filters);
-      setEvents(data);
-    } catch (err) {
-      setError('Failed to load events');
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  useEffect(() => {
+    debouncedLoadEvents(filters);
+
+    // Cleanup function to cancel any pending debounced calls
+    return () => {
+      debouncedLoadEvents.cancel();
+    };
+  }, [filters, debouncedLoadEvents]);
 
   const handleViewChange = (_: React.MouseEvent<HTMLElement>, newView: ViewMode | null) => {
     if (newView !== null) {
@@ -103,7 +113,7 @@ export default function EventsPage() {
       try {
         const success = await deleteEvent(selectedEventId);
         if (success) {
-          await loadEvents();
+          await debouncedLoadEvents(filters);
         } else {
           setError('Failed to delete event');
         }
