@@ -40,7 +40,7 @@ export async function deleteEvent(id: string): Promise<boolean> {
 
 export async function createEvent(eventData: Omit<Event, 'id' | 'createdAt' | 'updatedAt'>): Promise<Event | null> {
     try {
-        const response = await fetch('${API_URL}/events', {
+        const response = await fetch(`${API_URL}/events`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
