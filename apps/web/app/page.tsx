@@ -61,7 +61,6 @@ export default function EventsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
 
-  // Debounced load events function
   const debouncedLoadEvents = useCallback(
     debounce(async (currentFilters: EventFilters) => {
       try {
@@ -81,8 +80,6 @@ export default function EventsPage() {
 
   useEffect(() => {
     debouncedLoadEvents(filters);
-
-    // Cleanup function to cancel any pending debounced calls
     return () => {
       debouncedLoadEvents.cancel();
     };
