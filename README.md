@@ -22,6 +22,9 @@ docker-compose up -d
 
 Go back to root and run monorepo
 ```sh
+cd ..
+```
+```sh
 yarn dev
 ```
 
