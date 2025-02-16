@@ -1,3 +1,21 @@
+Event Management System (EMS)
+Project Overview
+A full-stack web application for managing and discovering events, built with modern web technologies.
+Tech Stack
+
+Frontend: Next.js 14, React, TypeScript
+Backend: NestJS
+Database: PostgreSQL
+Styling: Material UI
+
+Key Features
+
+Create, read, update, and delete events
+Event list with sorting and filtering
+Detailed event views
+Location-based event mapping
+Event recommendation algorithm
+
 Install globaly Turborepo
 ```sh
 npm install -g turbo
