@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
-import { getEventById } from '../actions';
 import EventDetailPage from '../../pages/EventDetailPage';
+import { getEventById } from '../../actions/events';
 
 export default async function EventDetail({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
@@ -10,5 +10,5 @@ export default async function EventDetail({ params }: { params: Promise<{ id: st
         redirect('/');
     }
 
-    return <EventDetailPage initialData={initialData} />;
+    return <EventDetailPage initialData={initialData} recomandations={[]} />;
 }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { z } from 'zod';
 import {
     TextField,
@@ -9,11 +9,16 @@ import {
     InputLabel,
     Grid,
     Box,
-    Typography
+    Typography,
+    Autocomplete,
+    CircularProgress
 } from '@mui/material';
 import { EventSchema } from '../schemas/event.schema';
 import { EventCategory } from '../types/event-category.type';
 import { SelectChangeEvent } from '@mui/material/Select';
+import LocationPickerMap from './LocationPickerMap';
+import { AddressSuggestion } from '../types/address-suggestion';
+import { fetchAddressFromCoordinatesAction, fetchAddressSuggestionsAction } from '../actions/geocoding';
 
 interface EventFormProps {
     initialData?: z.TypeOf<typeof EventSchema>;
@@ -27,14 +32,75 @@ export const EventForm: React.FC<EventFormProps> = ({ initialData, onSubmit }) =
         date: new Date().toISOString(),
         location: {
             address: '',
-            latitude: 0,
-            longitude: 0,
+            latitude: 40.7128,
+            longitude: -74.0060,
         },
         category: EventCategory.OTHER,
     });
+
     const [errors, setErrors] = useState<z.ZodError | null>(null);
+    const [addressSuggestions, setAddressSuggestions] = useState<AddressSuggestion[]>([]);
+    const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+    const [isLoadingReverseGeo, setIsLoadingReverseGeo] = useState(false);
 
+    const debounce = <F extends (...args: any[]) => void>(func: F, delay: number) => {
+        let timeoutId: NodeJS.Timeout;
+        return (...args: Parameters<F>) => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => func(...args), delay);
+        };
+    };
 
+    const fetchAddressSuggestions = useCallback(async (input: string) => {
+        setIsLoadingSuggestions(true);
+        try {
+            const suggestions = await fetchAddressSuggestionsAction(input);
+            setAddressSuggestions(suggestions);
+        } catch (error) {
+            console.error('Error fetching address suggestions:', error);
+            setAddressSuggestions([]);
+        } finally {
+            setIsLoadingSuggestions(false);
+        }
+    }, []);
+
+    const debouncedFetchAddressSuggestions = useMemo(
+        () => debounce(fetchAddressSuggestions, 500),
+        [fetchAddressSuggestions]
+    );
+
+    const fetchAddressFromCoordinates = useCallback(async (lat: number, lon: number) => {
+        setIsLoadingReverseGeo(true);
+        try {
+            const address = await fetchAddressFromCoordinatesAction(lat, lon);
+            if (address) {
+                setFormData(prev => ({
+                    ...prev,
+                    location: {
+                        ...prev.location,
+                        address
+                    }
+                }));
+            }
+        } catch (error) {
+            console.error('Error fetching address from coordinates:', error);
+        } finally {
+            setIsLoadingReverseGeo(false);
+        }
+    }, []);
+
+    const handleLocationChange = useCallback((location: { latitude: number; longitude: number }) => {
+        setFormData(prev => ({
+            ...prev,
+            location: {
+                ...prev.location,
+                latitude: location.latitude,
+                longitude: location.longitude
+            }
+        }));
+
+        fetchAddressFromCoordinates(location.latitude, location.longitude);
+    }, [fetchAddressFromCoordinates]);
 
     const handleChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | { name?: string; value: unknown }> |
@@ -44,6 +110,20 @@ export const EventForm: React.FC<EventFormProps> = ({ initialData, onSubmit }) =
         const targetValue = 'value' in e.target ? e.target.value : undefined;
 
         if (typeof targetName !== 'string') return;
+
+        if (targetName === 'location.address') {
+            const addressValue = targetValue as string;
+            setFormData(prev => ({
+                ...prev,
+                location: {
+                    ...prev.location,
+                    address: addressValue
+                }
+            }));
+
+            debouncedFetchAddressSuggestions(addressValue);
+            return;
+        }
 
         if (targetName.startsWith('location.')) {
             const locationField = targetName.split('.')[1];
@@ -68,6 +148,23 @@ export const EventForm: React.FC<EventFormProps> = ({ initialData, onSubmit }) =
                     ? targetValue as EventCategory
                     : targetValue
         }));
+    };
+
+    const handleAddressSelect = (
+        _event: React.SyntheticEvent,
+        value: AddressSuggestion | null
+    ) => {
+        if (value) {
+            setFormData(prev => ({
+                ...prev,
+                location: {
+                    ...prev.location,
+                    address: value.label,
+                    latitude: value.latitude,
+                    longitude: value.longitude
+                }
+            }));
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -177,15 +274,64 @@ export const EventForm: React.FC<EventFormProps> = ({ initialData, onSubmit }) =
                 </Grid>
 
                 <Grid item xs={12}>
-                    <TextField
+                    <Typography variant="h6" gutterBottom>
+                        Select Event Location
+                    </Typography>
+                    <LocationPickerMap
+                        initialLocation={{
+                            lat: formData.location.latitude,
+                            lng: formData.location.longitude
+                        }}
+                        onLocationChange={handleLocationChange}
+                        externalLocation={{
+                            lat: formData.location.latitude,
+                            lng: formData.location.longitude
+                        }}
+                    />
+                </Grid>
+
+                <Grid item xs={12}>
+                    <Autocomplete
                         fullWidth
-                        id="location.address"
-                        name="location.address"
-                        label="Address"
-                        value={formData.location.address}
-                        onChange={handleChange}
-                        error={!!getErrorMessage('location.address')}
-                        helperText={getErrorMessage('location.address')}
+                        options={addressSuggestions}
+                        loading={isLoadingSuggestions}
+                        getOptionLabel={(option) => option.label}
+                        renderInput={(params) => (
+                            <TextField
+                                {...params}
+                                id="location.address"
+                                name="location.address"
+                                label="Address"
+                                value={formData.location.address}
+                                onChange={handleChange}
+                                error={!!getErrorMessage('location.address')}
+                                helperText={getErrorMessage('location.address')}
+                                InputProps={{
+                                    ...params.InputProps,
+                                    endAdornment: (
+                                        <>
+                                            {isLoadingSuggestions ? <CircularProgress color="inherit" size={20} /> : null}
+                                            {params.InputProps.endAdornment}
+                                        </>
+                                    ),
+                                }}
+                            />
+                        )}
+                        value={{
+                            label: formData.location.address,
+                            latitude: formData.location.latitude,
+                            longitude: formData.location.longitude
+                        }}
+                        onChange={handleAddressSelect}
+                        onInputChange={(_, newInputValue) => {
+                            setFormData(prev => ({
+                                ...prev,
+                                location: {
+                                    ...prev.location,
+                                    address: newInputValue
+                                }
+                            }));
+                        }}
                     />
                 </Grid>
 
@@ -198,9 +344,12 @@ export const EventForm: React.FC<EventFormProps> = ({ initialData, onSubmit }) =
                         type="number"
                         value={formData.location.latitude}
                         onChange={handleChange}
-                        inputProps={{ step: "1" }}
+                        inputProps={{ step: "0.000001" }}
                         error={!!getErrorMessage('location.latitude')}
                         helperText={getErrorMessage('location.latitude')}
+                        InputProps={{
+                            endAdornment: isLoadingReverseGeo ? <CircularProgress size={20} /> : null
+                        }}
                     />
                 </Grid>
 
@@ -213,9 +362,12 @@ export const EventForm: React.FC<EventFormProps> = ({ initialData, onSubmit }) =
                         type="number"
                         value={formData.location.longitude}
                         onChange={handleChange}
-                        inputProps={{ step: "1" }}
+                        inputProps={{ step: "0.000001" }}
                         error={!!getErrorMessage('location.longitude')}
                         helperText={getErrorMessage('location.longitude')}
+                        InputProps={{
+                            endAdornment: isLoadingReverseGeo ? <CircularProgress size={20} /> : null
+                        }}
                     />
                 </Grid>
 
@@ -233,3 +385,5 @@ export const EventForm: React.FC<EventFormProps> = ({ initialData, onSubmit }) =
         </Box>
     );
 };
+
+export default EventForm;

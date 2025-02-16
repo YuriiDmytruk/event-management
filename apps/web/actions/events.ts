@@ -1,14 +1,9 @@
 'use server';
 
+import { EventFilters } from '../types/event-filters';
 import { Event } from '../types/event.types';
 
-export interface EventFilters {
-    category?: string;
-    startDate?: string;
-    endDate?: string;
-    search?: string;
-    sortDirection?: 'ASC' | 'DESC';
-}
+const API_URL = process.env.NEXT_API_URL;
 
 export async function fetchEvents(filters?: EventFilters): Promise<Event[]> {
     try {
@@ -19,7 +14,7 @@ export async function fetchEvents(filters?: EventFilters): Promise<Event[]> {
             });
         }
 
-        const response = await fetch(`http://localhost:8000/api/events?${queryParams}`);
+        const response = await fetch(`${API_URL}/events?${queryParams}`);
         if (!response.ok) throw new Error('Failed to fetch events');
 
         return await response.json();
@@ -31,7 +26,7 @@ export async function fetchEvents(filters?: EventFilters): Promise<Event[]> {
 
 export async function deleteEvent(id: string): Promise<boolean> {
     try {
-        const response = await fetch(`http://localhost:8000/api/events/${id}`, {
+        const response = await fetch(`${API_URL}/events/${id}`, {
             method: 'DELETE',
         });
 
@@ -45,7 +40,7 @@ export async function deleteEvent(id: string): Promise<boolean> {
 
 export async function createEvent(eventData: Omit<Event, 'id' | 'createdAt' | 'updatedAt'>): Promise<Event | null> {
     try {
-        const response = await fetch('http://localhost:8000/api/events', {
+        const response = await fetch('${API_URL}/events', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -65,7 +60,7 @@ export async function createEvent(eventData: Omit<Event, 'id' | 'createdAt' | 'u
 export async function updateEvent(id: string, eventData: Partial<Omit<Event, 'id' | 'createdAt' | 'updatedAt'>>): Promise<Event | null> {
     try {
         console.log('UPDATE')
-        const response = await fetch(`http://localhost:8000/api/events/${id}`, {
+        const response = await fetch(`${API_URL}/events/${id}`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
@@ -84,7 +79,7 @@ export async function updateEvent(id: string, eventData: Partial<Omit<Event, 'id
 
 export async function getEventById(id: string): Promise<Event | null> {
     try {
-        const response = await fetch(`http://localhost:8000/api/events/${id}`);
+        const response = await fetch(`${API_URL}/events/${id}`);
 
         if (!response.ok) throw new Error('Failed to fetch event');
 
@@ -97,7 +92,9 @@ export async function getEventById(id: string): Promise<Event | null> {
 
 export async function findSimilarEvents(id: string): Promise<Event[]> {
     try {
-        const response = await fetch(`http://localhost:8000/api/events/${id}/similar`);
+        const response = await fetch(`${API_URL}/events/${id}/similar`);
+
+        console.log(response)
 
         if (!response.ok) throw new Error('Failed to fetch similar events');
 

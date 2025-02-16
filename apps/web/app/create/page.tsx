@@ -10,9 +10,9 @@ import {
     Button
 } from '@mui/material';
 import { EventForm } from '../../components/EventForm';
-import { createEvent } from '../actions';
 import { z } from 'zod';
 import { EventSchema } from '../../schemas/event.schema';
+import { createEvent } from '../../actions/events';
 
 export default function CreateEventPage() {
     const router = useRouter();

@@ -34,8 +34,9 @@ import {
 import { useRouter } from 'next/navigation';
 import { EventCategory } from '../types/event-category.type';
 import { Event } from '../types/event.types';
-import { fetchEvents, deleteEvent } from './actions';
 import ListView from '../components/ListView';
+import MapView from '../components/MapView';
+import { deleteEvent, fetchEvents } from '../actions/events';
 
 type ViewMode = 'list' | 'map';
 
@@ -234,11 +235,11 @@ export default function EventsPage() {
             onDeleteClick={handleDeleteClick}
           />
         ) : (
-          <Box>
-            <Typography variant="h6">
-              Map View Coming Soon
-            </Typography>
-          </Box>
+          <MapView
+            events={events}
+            onDeleteClick={handleDeleteClick}
+            selectable
+          />
         )}
       </Container>
 

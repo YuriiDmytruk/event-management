@@ -15,12 +15,16 @@ import {
     DialogActions
 } from '@mui/material';
 import { Event } from '../types/event.types';
-import { deleteEvent } from '../app/actions';
+import MapView from '../components/MapView';
+import { deleteEvent } from '../actions/events';
+import ListView from '../components/ListView';
 
 export default function EventDetailPage({
-    initialData
+    initialData,
+    recomandations
 }: {
     initialData: Event
+    recomandations: Event[]
 }) {
     const router = useRouter();
     const [error, setError] = useState<string | null>(null);
@@ -104,6 +108,8 @@ export default function EventDetailPage({
                     </Typography>
                 </Box>
 
+                <MapView events={[initialData]} onDeleteClick={handleDeleteClick} />
+
                 <Grid container spacing={2} sx={{ mt: 2 }}>
                     <Grid item xs={4}>
                         <Button
@@ -136,6 +142,19 @@ export default function EventDetailPage({
                         </Button>
                     </Grid>
                 </Grid>
+
+
+                {recomandations.length > 0 && (
+                    <Box sx={{ width: '100%', mt: 4 }}>
+                        <Typography variant="h5" component="h2" gutterBottom>
+                            Recommended Events
+                        </Typography>
+                        <ListView
+                            events={recomandations}
+                            onDeleteClick={() => { }}
+                        />
+                    </Box>
+                )}
 
                 <Dialog
                     open={deleteDialogOpen}

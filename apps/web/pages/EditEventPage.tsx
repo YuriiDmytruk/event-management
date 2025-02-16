@@ -11,10 +11,10 @@ import {
 } from '@mui/material';
 import { Event } from '../types/event.types';
 import { EventCategory } from '../types/event-category.type';
-import { updateEvent } from '../app/actions';
 import { EventForm } from '../components/EventForm';
 import { z } from 'zod';
 import { EventSchema } from '../schemas/event.schema';
+import { updateEvent } from '../actions/events';
 
 interface EditEventClientProps {
     initialData: Event;
